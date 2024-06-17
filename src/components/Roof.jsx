@@ -15,6 +15,8 @@ export default function Roof() {
     handlePaste,
     handleRotate,
     attachCustomControlOnPolygon,
+    saveImage,
+    loadImage
   } = useCanvas('canvas')
 
   const addRect = () => {
@@ -181,7 +183,19 @@ export default function Roof() {
         >
           45도 회전
         </button>
+        <button
+          className="w-30 mx-2 p-2 rounded bg-black text-white"
+          onClick={() => {saveImage("제목")}}
+        >
+          이미지 저장
+        </button>
+        <input
+          type="file"
+          accept="image/*"
+          onChange={loadImage}
+        />
       </div>
+
       <div
         className="flex justify-center"
         style={{

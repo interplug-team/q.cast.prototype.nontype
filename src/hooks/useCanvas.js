@@ -12,12 +12,10 @@ const CANVAS = {
 }
 
 export function useCanvas(id) {
+
   const [canvas, setCanvas] = useState()
   const [isLocked, setIsLocked] = useState(false)
   const [history, setHistory] = useState([])
-
-  const connectMode = useRef(false)
-  const points = useRef([])
 
   /**
    * 처음 셋팅
@@ -26,6 +24,7 @@ export function useCanvas(id) {
     const c = new fabric.Canvas(id, {
       height: CANVAS.HEIGHT,
       width: CANVAS.WIDTH,
+      backgroundColor: 'white'
     })
 
     // settings for all canvas in the app
@@ -47,20 +46,32 @@ export function useCanvas(id) {
   useEffect(() => {
     if (canvas) {
       initialize()
-      canvas.on('object:added', onChange)
-      canvas.on('object:added', () => {
-        document.addEventListener('keydown', handleKeyDown)
-      })
-      canvas.on('object:modified', onChange)
-      canvas.on('object:removed', onChange)
     }
   }, [canvas])
+  const addEventOnCanvas = () => {
+    canvas?.on('object:added', onChange)
+    canvas?.on('object:modified', onChange)
+    canvas?.on('object:removed', onChange)
+    canvas?.on('object:added', () => {
+      document.addEventListener('keydown', handleKeyDown)
+    })
+  }
 
+  const removeEventOnCanvas = () => {
+    canvas?.off('object:added')
+    canvas?.off('object:modified')
+    canvas?.off('object:removed')
+    canvas?.off('object:added')
+
+  }
   /**
    * 눈금 그리기
    */
   const initialize = () => {
     canvas?.clear()
+
+    // 기존 이벤트가 있을 경우 제거한다.
+    removeEventOnCanvas()
 
     const width = canvas?.getWidth()
     const height = canvas?.getHeight()
@@ -94,6 +105,8 @@ export function useCanvas(id) {
 
       addShape(verticalLine)
     }
+
+    addEventOnCanvas()
   }
 
   /**
@@ -381,6 +394,45 @@ export function useCanvas(id) {
     canvas?.requestRenderAll()
   }
 
+  /**
+   * 이미지로 저장하는 함수
+   * @param {string} title - 저장할 이미지 이름
+   */
+  const saveImage = (title = 'canvas') => {
+    const dataURL = canvas?.toDataURL('png')
+
+    // 이미지 다운로드 링크 생성
+    const link = document.createElement('a');
+    link.download = `${title}.png`;
+    link.href = dataURL;
+
+    // 링크 클릭하여 이미지 다운로드
+    link.click();
+  }
+
+  /**
+   * 이미지로 저장한 내용을 업로드 후 canvas에 그리기
+   */
+
+  const loadImage = (e) => {
+
+    const file = e.target.files[0];
+    const reader = new FileReader();
+
+    reader.onload = function(e) {
+      const dataURL = e.target.result;
+      fabric.Image.fromURL(dataURL, function(img) {
+        // 이미지 객체 생성
+        img.selectable = false
+        canvas?.add(img);
+
+        canvas?.renderAll();
+      });
+    };
+
+    reader.readAsDataURL(file);
+  }
+
   return {
     canvas,
     addShape,
@@ -393,5 +445,7 @@ export function useCanvas(id) {
     handlePaste,
     handleRotate,
     attachCustomControlOnPolygon,
+    saveImage,
+    loadImage
   }
 }
