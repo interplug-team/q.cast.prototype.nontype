@@ -1,5 +1,5 @@
 /**
- * Collection of utils to use on canvas
+ * Collection of function to use on canvas
  */
 // define a function that can locate the controls
 export function polygonPositionHandler(dim, finalMatrix, fabricObject) {
