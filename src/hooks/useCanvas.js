@@ -17,6 +17,8 @@ export function useCanvas(id) {
   const [isLocked, setIsLocked] = useState(false)
   const [history, setHistory] = useState([])
 
+  const points = useRef([])
+
   /**
    * 처음 셋팅
    */
@@ -55,6 +57,9 @@ export function useCanvas(id) {
     canvas?.on('object:added', () => {
       document.addEventListener('keydown', handleKeyDown)
     })
+
+    canvas?.on('mouse:move', drawMouseLines);
+    canvas?.on('mouse:down', handleMouseDown);
   }
 
   const removeEventOnCanvas = () => {
@@ -73,38 +78,7 @@ export function useCanvas(id) {
     // 기존 이벤트가 있을 경우 제거한다.
     removeEventOnCanvas()
 
-    const width = canvas?.getWidth()
-    const height = canvas?.getHeight()
-
-    let startX = 0
-
-    let startY = 0
-
-    while (startX <= width) {
-      startX += 10
-      const verticalLine = new fabric.Line([startX, 0, startX, height], {
-        name: 'defaultLine',
-        stroke: 'black',
-        strokeWidth: 1,
-        selectable: false,
-        opacity: 0.5,
-      })
-
-      addShape(verticalLine)
-    }
-
-    while (startY <= height) {
-      startY += 10
-      const verticalLine = new fabric.Line([0, startY, width, startY], {
-        name: 'defaultLine',
-        stroke: 'black',
-        strokeWidth: 1,
-        selectable: false,
-        opacity: 0.5,
-      })
-
-      addShape(verticalLine)
-    }
+    // 작업 후에 event를 추가해준다.
 
     addEventOnCanvas()
   }
@@ -129,6 +103,69 @@ export function useCanvas(id) {
     }
     setIsLocked(false)
   }
+
+  const drawMouseLines = (e) => {
+    // 현재 마우스 포인터의 위치를 가져옵니다.
+    const pointer = canvas?.getPointer(e.e);
+
+    // 기존에 그려진 가이드라인을 제거합니다.
+    if (canvas?._objects.length > 0) {
+      canvas?._objects.forEach((obj) => {
+        if (obj.name === 'mouseLine') {
+          canvas?.remove(obj);
+        }
+      });
+    }
+
+    // 가로선을 그립니다.
+    const horizontalLine = new fabric.Line([0, pointer.y, CANVAS.WIDTH, pointer.y], {
+      stroke: 'black',
+      strokeWidth: 1,
+      selectable: false,
+      name: 'mouseLine',
+    });
+
+    // 세로선을 그립니다.
+    const verticalLine = new fabric.Line([pointer.x, 0, pointer.x, CANVAS.HEIGHT], {
+      stroke: 'black',
+      strokeWidth: 1,
+      selectable: false,
+      name: 'mouseLine',
+    });
+
+    // 선들을 캔버스에 추가합니다.
+    canvas?.add(horizontalLine, verticalLine);
+
+    // 캔버스를 다시 그립니다.
+    canvas?.renderAll();
+  };
+
+  const handleMouseDown = (e) => {
+    // 현재 마우스 포인터의 위치를 가져옵니다.
+    const pointer = canvas?.getPointer(e.e);
+
+    // 클릭한 위치를 배열에 추가합니다.
+    points.current.push(pointer);
+
+    // 두 점을 모두 찍었을 때 사각형을 그립니다.
+    if (points.current.length === 2) {
+      const rect = new fabric.Rect({
+        left: points.current[0].x,
+        top: points.current[0].y,
+        width: points.current[1].x - points.current[0].x,
+        height: points.current[1].y - points.current[0].y,
+        fill: 'transparent',
+        stroke: 'black',
+        strokeWidth: 1,
+      });
+
+      // 사각형을 캔버스에 추가합니다.
+      canvas?.add(rect);
+
+      // 배열을 초기화합니다.
+      points.current = [];
+    }
+  };
 
   /**
    * 눈금 모양에 맞게 움직이도록 한다.
