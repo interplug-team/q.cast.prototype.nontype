@@ -16,7 +16,6 @@ export default function Roof() {
     handleRotate,
     attachCustomControlOnPolygon,
     saveImage,
-    loadImage
   } = useCanvas('canvas')
 
   const addRect = () => {
@@ -189,11 +188,6 @@ export default function Roof() {
         >
           이미지 저장
         </button>
-        <input
-          type="file"
-          accept="image/*"
-          onChange={loadImage}
-        />
       </div>
 
       <div

@@ -67,7 +67,8 @@ export function useCanvas(id) {
     canvas?.off('object:modified')
     canvas?.off('object:removed')
     canvas?.off('object:added')
-
+    canvas?.off('mouse:move', drawMouseLines);
+    canvas?.off('mouse:down', handleMouseDown);
   }
   /**
    * 눈금 그리기
@@ -447,28 +448,6 @@ export function useCanvas(id) {
     link.click();
   }
 
-  /**
-   * 이미지로 저장한 내용을 업로드 후 canvas에 그리기
-   */
-
-  const loadImage = (e) => {
-
-    const file = e.target.files[0];
-    const reader = new FileReader();
-
-    reader.onload = function(e) {
-      const dataURL = e.target.result;
-      fabric.Image.fromURL(dataURL, function(img) {
-        // 이미지 객체 생성
-        img.selectable = false
-        canvas?.add(img);
-
-        canvas?.renderAll();
-      });
-    };
-
-    reader.readAsDataURL(file);
-  }
 
   return {
     canvas,
@@ -483,6 +462,5 @@ export function useCanvas(id) {
     handleRotate,
     attachCustomControlOnPolygon,
     saveImage,
-    loadImage
   }
 }
