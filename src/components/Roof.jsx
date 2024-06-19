@@ -1,3 +1,4 @@
+import { getDistance } from '@/app/util/canvas-util'
 import { useCanvas } from '@/hooks/useCanvas'
 import { fabric } from 'fabric'
 import { v4 as uuidv4 } from 'uuid'
@@ -16,7 +17,7 @@ export default function Roof() {
     handleRotate,
     attachCustomControlOnPolygon,
     saveImage,
-    handleFlip
+    handleFlip,
   } = useCanvas('canvas')
 
   const addRect = () => {
@@ -35,17 +36,31 @@ export default function Roof() {
   }
 
   const addHorizontalLine = () => {
+    const { x1, y1, x2, y2 } = { x1: 20, y1: 100, x2: 220, y2: 100 }
     /**
      * 시작X,시작Y,도착X,도착Y 좌표
      */
-    const horizontalLine = new fabric.Line([20, 20, 100, 20], {
+    const horizontalLine = new fabric.Line([x1, y1, x2, y2], {
       name: uuidv4(),
       stroke: 'red',
       strokeWidth: 3,
       selectable: true,
     })
 
-    addShape(horizontalLine)
+    const text = new fabric.Text(getDistance(x1, y1, x2, y2).toString(), {
+      fontSize: 20,
+      left: (x2 - x1) / 2,
+      top: y1 - 20,
+    })
+
+    const group = new fabric.Group([horizontalLine, text], {
+      left: 20,
+      top: 20,
+    })
+
+    // addShape(horizontalLine)
+    addShape(group)
+    console.log(JSON.stringify(canvas))
   }
 
   const addVerticalLine = () => {
@@ -191,7 +206,6 @@ export default function Roof() {
         >
           도형반전
         </button>
-
       </div>
 
       <div
