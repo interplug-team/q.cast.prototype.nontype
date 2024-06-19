@@ -77,3 +77,23 @@ export function anchorWrapper(anchorIndex, fn) {
 export const getDistance = (x1, y1, x2, y2) => {
   return Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2))
 }
+// 선의 길이를 계산하는 함수
+export const calculateLineLength = (x1, y1, x2, y2) => {
+  return Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2))
+}
+
+// 선과 텍스트를 그룹으로 묶는 함수
+export const createGroupWithLineAndText = (line, text) => {
+  return new fabric.Group([line, text])
+}
+
+export const calculateShapeLength = (shape) => {
+  // 도형의 원래 길이를 가져옵니다.
+  const originalLength = shape.width
+
+  // 도형의 scaleX 값을 가져옵니다.
+  const scaleX = shape.scaleX
+
+  // 도형의 현재 길이를 계산합니다.
+  return originalLength * scaleX
+}

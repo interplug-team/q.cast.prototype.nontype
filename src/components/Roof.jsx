@@ -1,4 +1,4 @@
-import { getDistance } from '@/app/util/canvas-util'
+import { createGroupWithLineAndText, getDistance } from '@/app/util/canvas-util'
 import { useCanvas } from '@/hooks/useCanvas'
 import { fabric } from 'fabric'
 import { v4 as uuidv4 } from 'uuid'
@@ -18,6 +18,7 @@ export default function Roof() {
     attachCustomControlOnPolygon,
     saveImage,
     handleFlip,
+    updateTextOnLineChange,
   } = useCanvas('canvas')
 
   const addRect = () => {
@@ -105,6 +106,31 @@ export default function Roof() {
     )
     attachCustomControlOnPolygon(trapezoid)
     addShape(trapezoid)
+  }
+
+  const addTextWithLine = () => {
+    const { x1, y1, x2, y2 } = { x1: 20, y1: 100, x2: 220, y2: 100 }
+    /**
+     * 시작X,시작Y,도착X,도착Y 좌표
+     */
+    const horizontalLine = new fabric.Line([x1, y1, x2, y2], {
+      name: uuidv4(),
+      stroke: 'red',
+      strokeWidth: 3,
+      selectable: true,
+    })
+
+    const text = new fabric.Text(getDistance(x1, y1, x2, y2).toString(), {
+      fontSize: 20,
+      left: (x2 - x1) / 2,
+      top: y1 - 20,
+    })
+
+    const group = createGroupWithLineAndText(horizontalLine, text)
+    addShape(group)
+
+    // 선의 길이가 변경될 때마다 텍스트를 업데이트하는 이벤트 리스너를 추가합니다.
+    group.on('modified', () => updateTextOnLineChange(group, text))
   }
 
   const randomColor = () => {
@@ -205,6 +231,12 @@ export default function Roof() {
           onClick={handleFlip}
         >
           도형반전
+        </button>
+        <button
+          className="w-30 mx-2 p-2 rounded bg-black text-white"
+          onClick={addTextWithLine}
+        >
+          숫자가 있는 선
         </button>
       </div>
 

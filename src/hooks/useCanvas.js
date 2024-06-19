@@ -3,6 +3,7 @@ import { fabric } from 'fabric'
 import {
   actionHandler,
   anchorWrapper,
+  calculateShapeLength,
   polygonPositionHandler,
 } from '@/app/util/canvas-util'
 
@@ -164,6 +165,7 @@ export function useCanvas(id) {
   const handleMouseDown = (e) => {
     // 현재 마우스 포인터의 위치를 가져옵니다.
     if (canvas?.getActiveObject()) {
+      points.current = []
       return
     }
     const pointer = canvas?.getPointer(e.e)
@@ -492,6 +494,13 @@ export function useCanvas(id) {
     canvas?.renderAll()
   }
 
+  // 선의 길이가 변경될 때마다 텍스트를 업데이트하는 함수
+  const updateTextOnLineChange = (group, text) => {
+    const length = calculateShapeLength(group)
+    text.set({ text: length.toString() })
+    canvas?.renderAll()
+  }
+
   return {
     canvas,
     addShape,
@@ -506,5 +515,6 @@ export function useCanvas(id) {
     attachCustomControlOnPolygon,
     saveImage,
     handleFlip,
+    updateTextOnLineChange,
   }
 }
