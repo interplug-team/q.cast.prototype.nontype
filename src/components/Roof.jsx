@@ -16,6 +16,7 @@ export default function Roof() {
     handleRotate,
     attachCustomControlOnPolygon,
     saveImage,
+    handleFlip
   } = useCanvas('canvas')
 
   const addRect = () => {
@@ -98,12 +99,6 @@ export default function Roof() {
   return (
     <>
       <div className="flex justify-center my-8">
-        <div className="flex justify-center my-8">
-          <p>
-            ctrl을 누른 채로 클릭하면 점이 생성되고 점을 하나 더 만들면 선이
-            생성됩니다.
-          </p>
-        </div>
         <button
           className="w-30 mx-2 p-2 rounded bg-blue-500 text-white"
           onClick={addRect}
@@ -184,10 +179,19 @@ export default function Roof() {
         </button>
         <button
           className="w-30 mx-2 p-2 rounded bg-black text-white"
-          onClick={() => {saveImage("제목")}}
+          onClick={() => {
+            saveImage('제목')
+          }}
         >
           이미지 저장
         </button>
+        <button
+          className="w-30 mx-2 p-2 rounded bg-black text-white"
+          onClick={handleFlip}
+        >
+          도형반전
+        </button>
+
       </div>
 
       <div

@@ -60,6 +60,7 @@ export function useCanvas(id) {
 
     canvas?.on('mouse:move', drawMouseLines);
     canvas?.on('mouse:down', handleMouseDown);
+    canvas?.on('mouse:out', removeMouseLines);
   }
 
   const removeEventOnCanvas = () => {
@@ -70,6 +71,18 @@ export function useCanvas(id) {
     canvas?.off('mouse:move', drawMouseLines);
     canvas?.off('mouse:down', handleMouseDown);
   }
+
+  /**
+   * 마우스 포인터의 가이드라인을 제거합니다.
+   */
+  const removeMouseLines = () => {
+    if (canvas?._objects.length > 0) {
+      const mouseLines = canvas?._objects.filter((obj) => obj.name === 'mouseLine');
+      mouseLines.forEach(item => canvas?.remove(item));
+    }
+    canvas?.renderAll();
+  };
+
   /**
    * 눈금 그리기
    */
@@ -110,12 +123,10 @@ export function useCanvas(id) {
     const pointer = canvas?.getPointer(e.e);
 
     // 기존에 그려진 가이드라인을 제거합니다.
-    if (canvas?._objects.length > 0) {
-      canvas?._objects.forEach((obj) => {
-        if (obj.name === 'mouseLine') {
-          canvas?.remove(obj);
-        }
-      });
+    removeMouseLines();
+
+    if(canvas?.getActiveObject()) {
+      return
     }
 
     // 가로선을 그립니다.
@@ -124,6 +135,7 @@ export function useCanvas(id) {
       strokeWidth: 1,
       selectable: false,
       name: 'mouseLine',
+      strokeDashArray: [5, 5]
     });
 
     // 세로선을 그립니다.
@@ -132,6 +144,7 @@ export function useCanvas(id) {
       strokeWidth: 1,
       selectable: false,
       name: 'mouseLine',
+      strokeDashArray: [5, 5]
     });
 
     // 선들을 캔버스에 추가합니다.
@@ -143,6 +156,9 @@ export function useCanvas(id) {
 
   const handleMouseDown = (e) => {
     // 현재 마우스 포인터의 위치를 가져옵니다.
+    if(canvas?.getActiveObject()) {
+      return;
+    }
     const pointer = canvas?.getPointer(e.e);
 
     // 클릭한 위치를 배열에 추가합니다.
@@ -448,6 +464,27 @@ export function useCanvas(id) {
     link.click();
   }
 
+  const handleFlip = () => {
+    const target = canvas?.getActiveObject();
+
+    if (!target) {
+      return;
+    }
+
+    // 현재 scaleX 및 scaleY 값을 가져옵니다.
+    const scaleX = target.scaleX;
+    // const scaleY = target.scaleY;
+
+    // 도형을 반전시킵니다.
+    target.set({
+      scaleX: scaleX * -1,
+      // scaleY: scaleY * -1
+    });
+
+    // 캔버스를 다시 그립니다.
+    canvas?.renderAll();
+  }
+
 
   return {
     canvas,
@@ -462,5 +499,6 @@ export function useCanvas(id) {
     handleRotate,
     attachCustomControlOnPolygon,
     saveImage,
+    handleFlip
   }
 }
