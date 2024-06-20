@@ -2,6 +2,7 @@ import { createGroupWithLineAndText, getDistance } from '@/app/util/canvas-util'
 import { useCanvas } from '@/hooks/useCanvas'
 import { fabric } from 'fabric'
 import { v4 as uuidv4 } from 'uuid'
+import { useEffect } from 'react'
 
 export default function Roof() {
   const {
@@ -20,6 +21,19 @@ export default function Roof() {
     handleFlip,
     updateTextOnLineChange,
   } = useCanvas('canvas')
+
+  useEffect(() => {
+    // IText 추가
+    const text = new fabric.IText('Hello', {
+      left: 100,
+      top: 100,
+      fill: 'red',
+    })
+    text.on('editing:entered', () => {
+      console.log('editing:entered')
+    })
+    canvas?.add(text)
+  }, [canvas])
 
   const addRect = () => {
     const rect = new fabric.Rect({
@@ -92,9 +106,9 @@ export default function Roof() {
     const trapezoid = new fabric.Polygon(
       [
         { x: 100, y: 100 }, // 좌상단
-        { x: 300, y: 100 }, // 우상단
-        { x: 250, y: 200 }, // 우하단
-        { x: 150, y: 200 }, // 좌하단
+        { x: 500, y: 100 }, // 우상단
+        { x: 750, y: 400 }, // 우하단
+        { x: 250, y: 400 }, // 좌하단
       ],
       {
         name: uuidv4(),
@@ -102,35 +116,89 @@ export default function Roof() {
         opacity: 0.4,
         strokeWidth: 3,
         selectable: true,
+        objectCaching: false,
       },
     )
-    attachCustomControlOnPolygon(trapezoid)
-    addShape(trapezoid)
+    // attachCustomControlOnPolygon(trapezoid)
+
+    const group = addDistanceTextToPolygon(trapezoid)
+    addGroupClickEvent(group)
+    group.getObjects().forEach(function (object, index) {
+      if (object.type === 'i-text') {
+        addTextModifiedEvent(object, trapezoid, index)
+      }
+    })
+    canvas?.add(group)
+    canvas?.renderAll()
   }
 
-  const addTextWithLine = () => {
-    const { x1, y1, x2, y2 } = { x1: 20, y1: 100, x2: 220, y2: 100 }
-    /**
-     * 시작X,시작Y,도착X,도착Y 좌표
-     */
-    const horizontalLine = new fabric.Line([x1, y1, x2, y2], {
-      name: uuidv4(),
-      stroke: 'red',
-      strokeWidth: 3,
+  // group에 클릭 이벤트를 추가하여 클릭 시 group을 제거하고 object들만 남기는 함수
+  function addGroupClickEvent(group) {
+    group.on('mousedown', function () {
+      const objects = group.getObjects()
+      canvas?.remove(group)
+      objects.forEach(function (object) {
+        canvas?.add(object)
+      })
+      canvas?.renderAll()
+    })
+  }
+
+  // polygon의 각 변에 해당 점과 점 사이의 거리를 나타내는 IText를 추가하는 함수
+  function addDistanceTextToPolygon(polygon) {
+    const points = polygon.get('points')
+    const texts = []
+
+    for (let i = 0; i < points.length; i++) {
+      const start = points[i]
+      const end = points[(i + 1) % points.length] // 다음 점 (마지막 점의 경우 첫번째 점으로)
+      const distance = Math.sqrt(
+        Math.pow(end.x - start.x, 2) + Math.pow(end.y - start.y, 2),
+      ) // 두 점 사이의 거리 계산
+
+      const text = new fabric.IText(distance.toFixed(2), {
+        // 소수 둘째자리까지 표시
+        left: (start.x + end.x) / 2, // 텍스트의 위치는 두 점의 중간
+        top: (start.y + end.y) / 2,
+        fontSize: 10,
+        editable: true,
+      })
+
+      texts.push(text)
+    }
+
+    return new fabric.Group([polygon, ...texts], {
+      // polygon과 텍스트들을 그룹화
       selectable: true,
     })
+  }
 
-    const text = new fabric.Text(getDistance(x1, y1, x2, y2).toString(), {
-      fontSize: 20,
-      left: (x2 - x1) / 2,
-      top: y1 - 20,
+  // IText를 수정할 때 해당 값을 길이로 갖는 다른 polygon을 생성하고 다시 그룹화하는 함수
+  function addTextModifiedEvent(text, polygon, index) {
+    text.on('editing:entered', function () {
+      console.log(123)
+      const newLength = parseFloat(text.text)
+      const points = polygon.get('points')
+      const start = points[index]
+      const end = points[(index + 1) % points.length]
+      const vector = { x: end.x - start.x, y: end.y - start.y } // start에서 end로의 벡터
+      const length = Math.sqrt(vector.x * vector.x + vector.y * vector.y) // 벡터의 길이 (현재 거리)
+      const normalizedVector = { x: vector.x / length, y: vector.y / length } // 벡터를 정규화 (길이를 1로)
+      const scaledVector = {
+        x: normalizedVector.x * newLength,
+        y: normalizedVector.y * newLength,
+      } // 정규화된 벡터를 새로운 길이로 스케일링
+
+      // end 점을 새로운 위치로 이동
+      end.x = start.x + scaledVector.x
+      end.y = start.y + scaledVector.y
+
+      // polygon을 다시 그룹화
+      const newGroup = addDistanceTextToPolygon(polygon)
+      addGroupClickEvent(newGroup)
+      canvas.add(newGroup)
+      canvas.renderAll()
     })
-
-    const group = createGroupWithLineAndText(horizontalLine, text)
-    addShape(group)
-
-    // 선의 길이가 변경될 때마다 텍스트를 업데이트하는 이벤트 리스너를 추가합니다.
-    group.on('modified', () => updateTextOnLineChange(group, text))
   }
 
   const randomColor = () => {
@@ -231,12 +299,6 @@ export default function Roof() {
           onClick={handleFlip}
         >
           도형반전
-        </button>
-        <button
-          className="w-30 mx-2 p-2 rounded bg-black text-white"
-          onClick={addTextWithLine}
-        >
-          숫자가 있는 선
         </button>
       </div>
 

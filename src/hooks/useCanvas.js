@@ -96,7 +96,7 @@ export function useCanvas(id) {
 
     // 작업 후에 event를 추가해준다.
 
-    addEventOnCanvas()
+    // addEventOnCanvas()
   }
 
   /**
@@ -440,6 +440,7 @@ export function useCanvas(id) {
     const lastControl = poly.points?.length - 1
     poly.cornerStyle = 'rect'
     poly.cornerColor = 'rgba(0,0,255,0.5)'
+    poly.objectCaching = false
     poly.controls = poly.points.reduce(function (acc, point, index) {
       acc['p' + index] = new fabric.Control({
         positionHandler: polygonPositionHandler,
