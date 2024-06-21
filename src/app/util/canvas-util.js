@@ -77,23 +77,31 @@ export function anchorWrapper(anchorIndex, fn) {
 export const getDistance = (x1, y1, x2, y2) => {
   return Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2))
 }
-// 선의 길이를 계산하는 함수
-export const calculateLineLength = (x1, y1, x2, y2) => {
-  return Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2))
-}
 
-// 선과 텍스트를 그룹으로 묶는 함수
-export const createGroupWithLineAndText = (line, text) => {
-  return new fabric.Group([line, text])
-}
+// polygon의 각 변에 해당 점과 점 사이의 거리를 나타내는 IText를 추가하는 함수
+export function addDistanceTextToPolygon(polygon) {
+  const points = polygon.get('points')
+  const texts = []
 
-export const calculateShapeLength = (shape) => {
-  // 도형의 원래 길이를 가져옵니다.
-  const originalLength = shape.width
+  for (let i = 0; i < points.length; i++) {
+    const start = points[i]
+    const end = points[(i + 1) % points.length] // 다음 점 (마지막 점의 경우 첫번째 점으로)
+    const distance = Math.sqrt(
+      Math.pow(end.x - start.x, 2) + Math.pow(end.y - start.y, 2),
+    ) // 두 점 사이의 거리 계산
 
-  // 도형의 scaleX 값을 가져옵니다.
-  const scaleX = shape.scaleX
+    const text = new fabric.Textbox(distance.toFixed(2), {
+      // 소수 둘째자리까지 표시
+      left: (start.x + end.x) / 2, // 텍스트의 위치는 두 점의 중간
+      top: (start.y + end.y) / 2,
+      fontSize: 20,
+    })
 
-  // 도형의 현재 길이를 계산합니다.
-  return originalLength * scaleX
+    texts.push(text)
+  }
+
+  return new fabric.Group([polygon, ...texts], {
+    // polygon과 텍스트들을 그룹화
+    selectable: true,
+  })
 }
