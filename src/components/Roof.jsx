@@ -280,7 +280,7 @@ export default function Roof() {
 
   return (
     <>
-      <div className="flex justify-center my-8">
+      <div className="flex justify-center my-8 w-full">
         <button
           className="w-30 mx-2 p-2 rounded bg-blue-500 text-white"
           onClick={addRect}
