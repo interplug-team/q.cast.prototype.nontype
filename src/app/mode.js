@@ -11,6 +11,8 @@ export const MODE = {
 export function useMode() {
   const [mode, setMode] = useState(MODE.EDIT)
   const points = useRef([])
+  const historyPoints = useRef([])
+  const lines = useRef([])
 
   const addEvent = (canvas, mode) => {
     switch (mode) {
@@ -54,6 +56,7 @@ export function useMode() {
         selectable: false,
       })
 
+      historyPoints.current.push(circle)
       points.current.push(circle)
       canvas?.add(circle)
 
@@ -65,6 +68,7 @@ export function useMode() {
           points.current.forEach((point) => {
             canvas?.remove(point)
           })
+          historyPoints.current.pop()
           points.current = []
           return
         }
@@ -145,6 +149,9 @@ export function useMode() {
           canvas?.add(line)
           canvas?.add(text)
           canvas?.add(endPointCircle)
+
+          historyPoints.current.push(endPointCircle)
+
           points.current.forEach((point) => {
             canvas?.remove(point)
           })
@@ -156,7 +163,29 @@ export function useMode() {
     })
   }
 
-  const templateMode = (canvas) => {}
+  const templateMode = (canvas) => {
+    changeMode(canvas, MODE.EDIT)
+
+    if (historyPoints.current.length >= 4) {
+      const firstPoint = historyPoints.current[0]
+      const lastPoint = historyPoints.current[historyPoints.current.length - 1]
+
+      const line = new fabric.Line(
+        [firstPoint.left, firstPoint.top, lastPoint.left, lastPoint.top],
+        {
+          stroke: 'black',
+          strokeWidth: 2,
+          selectable: false,
+        },
+      )
+      historyPoints.current.forEach((point) => {
+        canvas?.remove(point)
+      })
+      historyPoints.current = []
+      canvas?.add(line)
+      canvas?.renderAll()
+    }
+  }
 
   const textboxMode = (canvas) => {
     canvas?.on('mouse:down', function (options) {
@@ -213,7 +242,8 @@ export function useMode() {
         width: pointer.x - origX,
         height: pointer.y - origY,
         angle: 0,
-        fill: 'rgba(255,0,0,0.5)',
+        fill: 'transparent',
+        stroke: 'black',
         transparentCorners: false,
       })
       canvas.add(rect)

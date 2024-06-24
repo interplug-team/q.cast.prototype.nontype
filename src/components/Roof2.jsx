@@ -3,7 +3,7 @@ import { useEffect } from 'react'
 import { MODE, useMode } from '@/app/mode'
 
 export default function Roof2() {
-  const { canvas, handleRedo, handleUndo } = useCanvas('canvas')
+  const { canvas, handleRedo, handleUndo, handleClear } = useCanvas('canvas')
 
   const { mode, changeMode } = useMode()
 
@@ -12,7 +12,7 @@ export default function Roof2() {
     if (!canvas) return
     // canvas가 있는 경우
     changeMode(canvas, mode)
-  }, [mode])
+  }, [mode, canvas])
 
   return (
     <>
@@ -58,6 +58,12 @@ export default function Roof2() {
           onClick={handleRedo}
         >
           Redo
+        </button>
+        <button
+          className="w-30 mx-2 p-2 rounded bg-gray-500 text-white"
+          onClick={handleClear}
+        >
+          clear
         </button>
       </div>
 
