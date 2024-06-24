@@ -3,6 +3,7 @@ import { useEffect, useRef } from 'react'
 
 export default function Roof2() {
   const { canvas } = useCanvas('canvas')
+  const mode = useRef('')
   const points = useRef([])
   useEffect(() => {
     canvas?.on('mouse:down', function (options) {
@@ -121,7 +122,17 @@ export default function Roof2() {
   }, [canvas])
   return (
     <>
-      <div className="flex justify-center my-8"></div>
+      <div className="flex justify-center my-8">
+        <button className="w-30 mx-2 p-2 rounded bg-blue-500 text-white">
+          Editing
+        </button>
+        <button className="w-30 mx-2 p-2 rounded bg-gray-500 text-white">
+          Template
+        </button>
+        <button className="w-30 mx-2 p-2 rounded bg-gray-500 text-white">
+          텍스트박스 mode
+        </button>
+      </div>
 
       <div
         className="flex justify-center"
