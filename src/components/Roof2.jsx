@@ -18,22 +18,28 @@ export default function Roof2() {
     <>
       <div className="flex justify-center my-8">
         <button
+          className={`w-30 mx-2 p-2 rounded ${mode === MODE.DRAW_LINE ? 'bg-blue-500' : 'bg-gray-500'} text-white`}
+          onClick={() => changeMode(canvas, MODE.DRAW_LINE)}
+        >
+          기준선 긋기 모드
+        </button>
+        <button
           className={`w-30 mx-2 p-2 rounded ${mode === MODE.EDIT ? 'bg-blue-500' : 'bg-gray-500'} text-white`}
           onClick={() => changeMode(canvas, MODE.EDIT)}
         >
-          Editing
+          에디팅모드
         </button>
         <button
           className={`w-30 mx-2 p-2 rounded ${mode === MODE.TEMPLATE ? 'bg-blue-500' : 'bg-gray-500'} text-white`}
           onClick={() => changeMode(canvas, MODE.TEMPLATE)}
         >
-          Template
+          템플릿모드
         </button>
         <button
           className={`w-30 mx-2 p-2 rounded ${mode === MODE.TEXTBOX ? 'bg-blue-500' : 'bg-gray-500'} text-white`}
           onClick={() => changeMode(canvas, MODE.TEXTBOX)}
         >
-          텍스트박스 mode
+          텍스트박스 모드
         </button>
       </div>
 

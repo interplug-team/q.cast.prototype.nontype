@@ -1,11 +1,21 @@
 import { useRef, useState } from 'react'
 
+export const MODE = {
+  DRAW_LINE: 'drawLine', // 기준선 긋기모드
+  EDIT: 'edit',
+  TEMPLATE: 'template',
+  TEXTBOX: 'textbox',
+}
+
 export function useMode() {
   const [mode, setMode] = useState(MODE.EDIT)
   const points = useRef([])
 
   const addEvent = (canvas, mode) => {
     switch (mode) {
+      case 'drawLine':
+        drawLineMode(canvas)
+        break
       case 'edit':
         editMode(canvas)
         break
@@ -166,11 +176,23 @@ export function useMode() {
     })
   }
 
-  return { mode, changeMode }
-}
+  const drawLineMode = (canvas) => {
+    canvas?.on('mouse:down', function (options) {
+      const pointer = canvas?.getPointer(options.e)
 
-export const MODE = {
-  EDIT: 'edit',
-  TEMPLATE: 'template',
-  TEXTBOX: 'textbox',
+      const line = new fabric.Line(
+        [pointer.x, 0, pointer.x, canvas.height], // y축에 1자 선을 그립니다.
+        {
+          stroke: 'black',
+          strokeWidth: 2,
+          selectable: false,
+        },
+      )
+
+      canvas?.add(line)
+      canvas?.renderAll()
+    })
+  }
+
+  return { mode, changeMode }
 }
