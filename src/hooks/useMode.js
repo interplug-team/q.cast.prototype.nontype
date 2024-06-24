@@ -311,6 +311,7 @@ export function useMode() {
   const makePolygon = () => {
     // 캔버스에서 모든 라인 객체를 찾습니다.
     const lines = historyLines.current
+    historyLines.current = []
 
     // 각 라인의 시작점과 끝점을 사용하여 다각형의 점 배열을 생성합니다.
     const points = lines.map((line) => ({ x: line.x1, y: line.y1 }))
