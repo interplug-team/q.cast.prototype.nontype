@@ -3,7 +3,7 @@ import { useEffect } from 'react'
 import { MODE, useMode } from '@/app/mode'
 
 export default function Roof2() {
-  const { canvas } = useCanvas('canvas')
+  const { canvas, handleRedo, handleUndo } = useCanvas('canvas')
 
   const { mode, changeMode } = useMode()
 
@@ -40,6 +40,24 @@ export default function Roof2() {
           onClick={() => changeMode(canvas, MODE.TEXTBOX)}
         >
           텍스트박스 모드
+        </button>
+        <button
+          className={`w-30 mx-2 p-2 rounded ${mode === MODE.DRAW_RECT ? 'bg-blue-500' : 'bg-gray-500'} text-white`}
+          onClick={() => changeMode(canvas, MODE.DRAW_RECT)}
+        >
+          사각형 생성 모드
+        </button>
+        <button
+          className="w-30 mx-2 p-2 rounded bg-gray-500 text-white"
+          onClick={handleUndo}
+        >
+          Undo
+        </button>
+        <button
+          className="w-30 mx-2 p-2 rounded bg-gray-500 text-white"
+          onClick={handleRedo}
+        >
+          Redo
         </button>
       </div>
 

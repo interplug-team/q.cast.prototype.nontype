@@ -48,6 +48,9 @@ export function useCanvas(id) {
   useEffect(() => {
     if (canvas) {
       initialize()
+      canvas?.on('object:added', onChange)
+      canvas?.on('object:modified', onChange)
+      canvas?.on('object:removed', onChange)
       canvas?.on('mouse:move', drawMouseLines)
       canvas?.on('mouse:out', removeMouseLines)
     }
@@ -210,15 +213,16 @@ export function useCanvas(id) {
    */
   const handleUndo = () => {
     if (canvas) {
-      if (canvas._objects.length > 0) {
-        const poppedObject = canvas._objects.pop()
+      if (canvas?._objects.length > 0) {
+        const poppedObject = canvas?._objects.pop()
+
         setHistory((prev) => {
           if (prev === undefined) {
             return poppedObject ? [poppedObject] : []
           }
           return poppedObject ? [...prev, poppedObject] : prev
         })
-        canvas.renderAll()
+        canvas?.renderAll()
       }
     }
   }
@@ -227,7 +231,7 @@ export function useCanvas(id) {
     if (canvas && history) {
       if (history.length > 0) {
         setIsLocked(true)
-        canvas.add(history[history.length - 1])
+        canvas?.add(history[history.length - 1])
         const newHistory = history.slice(0, -1)
         setHistory(newHistory)
       }
