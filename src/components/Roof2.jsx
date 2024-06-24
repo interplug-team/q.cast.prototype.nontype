@@ -1,11 +1,11 @@
 import { useCanvas } from '@/hooks/useCanvas'
 import { useEffect } from 'react'
-import { MODE, useMode } from '@/app/mode'
+import { UseMode, useMode } from '@/hooks/useMode'
 
 export default function Roof2() {
   const { canvas, handleRedo, handleUndo, handleClear } = useCanvas('canvas')
 
-  const { mode, changeMode } = useMode()
+  const { mode, changeMode, setCanvas } = useMode()
 
   useEffect(() => {
     // canvas가 없는 경우
@@ -18,32 +18,32 @@ export default function Roof2() {
     <>
       <div className="flex justify-center my-8">
         <button
-          className={`w-30 mx-2 p-2 rounded ${mode === MODE.DRAW_LINE ? 'bg-blue-500' : 'bg-gray-500'} text-white`}
-          onClick={() => changeMode(canvas, MODE.DRAW_LINE)}
+          className={`w-30 mx-2 p-2 rounded ${mode === UseMode.DRAW_LINE ? 'bg-blue-500' : 'bg-gray-500'} text-white`}
+          onClick={() => changeMode(canvas, UseMode.DRAW_LINE)}
         >
           기준선 긋기 모드
         </button>
         <button
-          className={`w-30 mx-2 p-2 rounded ${mode === MODE.EDIT ? 'bg-blue-500' : 'bg-gray-500'} text-white`}
-          onClick={() => changeMode(canvas, MODE.EDIT)}
+          className={`w-30 mx-2 p-2 rounded ${mode === UseMode.EDIT ? 'bg-blue-500' : 'bg-gray-500'} text-white`}
+          onClick={() => changeMode(canvas, UseMode.EDIT)}
         >
           에디팅모드
         </button>
         <button
-          className={`w-30 mx-2 p-2 rounded ${mode === MODE.TEMPLATE ? 'bg-blue-500' : 'bg-gray-500'} text-white`}
-          onClick={() => changeMode(canvas, MODE.TEMPLATE)}
+          className={`w-30 mx-2 p-2 rounded ${mode === UseMode.TEMPLATE ? 'bg-blue-500' : 'bg-gray-500'} text-white`}
+          onClick={() => changeMode(canvas, UseMode.TEMPLATE)}
         >
           템플릿모드
         </button>
         <button
-          className={`w-30 mx-2 p-2 rounded ${mode === MODE.TEXTBOX ? 'bg-blue-500' : 'bg-gray-500'} text-white`}
-          onClick={() => changeMode(canvas, MODE.TEXTBOX)}
+          className={`w-30 mx-2 p-2 rounded ${mode === UseMode.TEXTBOX ? 'bg-blue-500' : 'bg-gray-500'} text-white`}
+          onClick={() => changeMode(canvas, UseMode.TEXTBOX)}
         >
           텍스트박스 모드
         </button>
         <button
-          className={`w-30 mx-2 p-2 rounded ${mode === MODE.DRAW_RECT ? 'bg-blue-500' : 'bg-gray-500'} text-white`}
-          onClick={() => changeMode(canvas, MODE.DRAW_RECT)}
+          className={`w-30 mx-2 p-2 rounded ${mode === UseMode.DRAW_RECT ? 'bg-blue-500' : 'bg-gray-500'} text-white`}
+          onClick={() => changeMode(canvas, UseMode.DRAW_RECT)}
         >
           사각형 생성 모드
         </button>

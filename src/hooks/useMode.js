@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react'
 
-export const MODE = {
+export const UseMode = {
   DRAW_LINE: 'drawLine', // 기준선 긋기모드
   EDIT: 'edit',
   TEMPLATE: 'template',
@@ -9,27 +9,28 @@ export const MODE = {
 }
 
 export function useMode() {
-  const [mode, setMode] = useState(MODE.EDIT)
+  const [mode, setMode] = useState(UseMode.EDIT)
   const points = useRef([])
   const historyPoints = useRef([])
-  const lines = useRef([])
+  const historyLines = useRef([])
+  const [canvas, setCanvas] = useState(null)
 
-  const addEvent = (canvas, mode) => {
+  const addEvent = (mode) => {
     switch (mode) {
       case 'drawLine':
-        drawLineMode(canvas)
+        drawLineMode()
         break
       case 'edit':
-        editMode(canvas)
+        editMode()
         break
       case 'template':
-        templateMode(canvas)
+        templateMode()
         break
       case 'textbox':
-        textboxMode(canvas)
+        textboxMode()
         break
       case 'drawRect':
-        drawRectMode(canvas)
+        drawRectMode()
         break
     }
   }
@@ -38,15 +39,15 @@ export function useMode() {
     setMode(mode)
     // mode변경 시 이전 이벤트 제거
     canvas?.off('mouse:down')
-
-    addEvent(canvas, mode)
+    setCanvas(canvas)
+    addEvent(mode)
   }
 
-  const editMode = (canvas) => {
+  const editMode = () => {
     canvas?.on('mouse:down', function (options) {
       const pointer = canvas?.getPointer(options.e)
       const circle = new fabric.Circle({
-        radius: 5,
+        radius: 1,
         fill: 'transparent', // 원 안을 비웁니다.
         stroke: 'black', // 원 테두리 색상을 검은색으로 설정합니다.
         left: pointer.x,
@@ -95,15 +96,6 @@ export function useMode() {
             }
           }
 
-          let direction
-          if (Math.abs(vector.x) > Math.abs(vector.y)) {
-            // x축 방향으로 더 많이 이동
-            direction = vector.x > 0 ? 'right' : 'left'
-          } else {
-            // y축 방향으로 더 많이 이동
-            direction = vector.y > 0 ? 'bottom' : 'top'
-          }
-
           const line = new fabric.Line(
             [
               points.current[0].left,
@@ -115,10 +107,12 @@ export function useMode() {
               stroke: 'black',
               strokeWidth: 2,
               selectable: false,
-              direction: direction,
+              direction: getDirection(points.current[0], points.current[1]),
             },
           )
 
+          historyLines.current.push(line)
+          console.log(line)
           const text = new fabric.Text(length.toString(), {
             left:
               (points.current[0].left +
@@ -136,7 +130,7 @@ export function useMode() {
 
           // 라인의 끝에 점을 추가합니다.
           const endPointCircle = new fabric.Circle({
-            radius: 5,
+            radius: 1,
             fill: 'transparent', // 원 안을 비웁니다.
             stroke: 'black', // 원 테두리 색상을 검은색으로 설정합니다.
             left: points.current[0].left + scaledVector.x,
@@ -145,6 +139,8 @@ export function useMode() {
             originY: 'center',
             selectable: false,
           })
+
+          console.log(endPointCircle)
 
           canvas?.add(line)
           canvas?.add(text)
@@ -163,31 +159,23 @@ export function useMode() {
     })
   }
 
-  const templateMode = (canvas) => {
-    changeMode(canvas, MODE.EDIT)
+  const templateMode = () => {
+    changeMode(canvas, UseMode.EDIT)
 
     if (historyPoints.current.length >= 4) {
       const firstPoint = historyPoints.current[0]
       const lastPoint = historyPoints.current[historyPoints.current.length - 1]
-
-      const line = new fabric.Line(
-        [firstPoint.left, firstPoint.top, lastPoint.left, lastPoint.top],
-        {
-          stroke: 'black',
-          strokeWidth: 2,
-          selectable: false,
-        },
-      )
       historyPoints.current.forEach((point) => {
         canvas?.remove(point)
       })
+      drawLineWithLength(lastPoint, firstPoint)
+      points.current = []
       historyPoints.current = []
-      canvas?.add(line)
-      canvas?.renderAll()
+      makePolygon()
     }
   }
 
-  const textboxMode = (canvas) => {
+  const textboxMode = () => {
     canvas?.on('mouse:down', function (options) {
       if (canvas?.getActiveObject()?.type === 'textbox') return
       const pointer = canvas?.getPointer(options.e)
@@ -204,12 +192,12 @@ export function useMode() {
       canvas?.renderAll()
       // textbox가 active가 풀린 경우 editing mode로 변경
       textbox?.on('editing:exited', function () {
-        changeMode(canvas, MODE.EDIT)
+        changeMode(canvas, UseMode.EDIT)
       })
     })
   }
 
-  const drawLineMode = (canvas) => {
+  const drawLineMode = () => {
     canvas?.on('mouse:down', function (options) {
       const pointer = canvas?.getPointer(options.e)
 
@@ -227,7 +215,7 @@ export function useMode() {
     })
   }
 
-  const drawRectMode = (canvas) => {
+  const drawRectMode = () => {
     let rect, isDown, origX, origY
     canvas.on('mouse:down', function (o) {
       isDown = true
@@ -269,5 +257,80 @@ export function useMode() {
     })
   }
 
-  return { mode, changeMode }
+  /**
+   * 두 점 사이의 방향을 반환합니다.
+   */
+  const getDirection = (a, b) => {
+    const vector = {
+      x: b.left - a.left,
+      y: b.top - a.top,
+    }
+
+    if (Math.abs(vector.x) > Math.abs(vector.y)) {
+      // x축 방향으로 더 많이 이동
+      return vector.x > 0 ? 'right' : 'left'
+    } else {
+      // y축 방향으로 더 많이 이동
+      return vector.y > 0 ? 'bottom' : 'top'
+    }
+  }
+
+  /**
+   * 두 점을 연결하는 선과 길이를 그립니다.
+   */
+  const drawLineWithLength = (a, b) => {
+    const vector = {
+      x: b.left - a.left,
+      y: b.top - a.top,
+    }
+    const line = new fabric.Line([a.left, a.top, b.left, b.top], {
+      stroke: 'black',
+      strokeWidth: 2,
+      selectable: false,
+      direction: getDirection(a, b),
+    })
+    historyLines.current.push(line)
+
+    const text = new fabric.Text(
+      Math.round(Math.sqrt(vector.x ** 2 + vector.y ** 2)).toString(),
+      {
+        left: (a.left + b.left) / 2,
+        top: (a.top + b.top) / 2,
+        fontSize: 15,
+        originX: 'center',
+        originY: 'center',
+        selectable: false,
+      },
+    )
+
+    canvas?.add(line)
+    canvas?.add(text)
+    canvas?.renderAll()
+  }
+
+  const makePolygon = () => {
+    // 캔버스에서 모든 라인 객체를 찾습니다.
+    const lines = historyLines.current
+
+    // 각 라인의 시작점과 끝점을 사용하여 다각형의 점 배열을 생성합니다.
+    const points = lines.map((line) => ({ x: line.x1, y: line.y1 }))
+
+    // 모든 라인 객체를 캔버스에서 제거합니다.
+    lines.forEach((line) => canvas.remove(line))
+
+    // 점 배열을 사용하여 새로운 다각형 객체를 생성합니다.
+    const polygon = new fabric.Polygon(points, {
+      stroke: 'black',
+      fill: 'transparent',
+      selectable: false,
+    })
+
+    // 새로운 다각형 객체를 캔버스에 추가합니다.
+    canvas.add(polygon)
+
+    // 캔버스를 다시 그립니다.
+    canvas.renderAll()
+  }
+
+  return { mode, changeMode, setCanvas }
 }
