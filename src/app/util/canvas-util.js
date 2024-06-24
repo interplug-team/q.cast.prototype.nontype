@@ -97,3 +97,22 @@ export const calculateShapeLength = (shape) => {
   // 도형의 현재 길이를 계산합니다.
   return originalLength * scaleX
 }
+
+/**
+ *
+ * @param {number} value
+ * @param {boolean} useDefault
+ * @param {string} delimeter
+ * @returns
+ * ex) 1,100 mm
+ */
+export const formattedWithComma = (value, unit = 'mm') => {
+  let formatterdData = value.toLocaleString('ko-KR')
+  if (unit === 'cm') {
+    formatterdData = value.toLocaleString('ko-KR') / 10
+  } else if (unit === 'm') {
+    formatterdData = value.toLocaleString('ko-KR') / 1000
+  }
+
+  return `${formatterdData} ${unit}`
+}
