@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react'
 
-export const UseMode = {
+export const Mode = {
   DRAW_LINE: 'drawLine', // 기준선 긋기모드
   EDIT: 'edit',
   TEMPLATE: 'template',
@@ -9,13 +9,13 @@ export const UseMode = {
 }
 
 export function useMode() {
-  const [mode, setMode] = useState(UseMode.EDIT)
+  const [mode, setMode] = useState(Mode.EDIT)
   const points = useRef([])
   const historyPoints = useRef([])
   const historyLines = useRef([])
   const [canvas, setCanvas] = useState(null)
 
-  const addEvent = (mode) => {
+  const addEvent = (mode = Mode.EDIT) => {
     switch (mode) {
       case 'drawLine':
         drawLineMode()
@@ -35,11 +35,11 @@ export function useMode() {
     }
   }
 
-  const changeMode = (canvas, mode) => {
+  const changeMode = (canvas, mode = Mode.EDIT) => {
     setMode(mode)
     // mode변경 시 이전 이벤트 제거
-    canvas?.off('mouse:down')
     setCanvas(canvas)
+    canvas?.off('mouse:down')
     addEvent(mode)
   }
 
@@ -112,7 +112,6 @@ export function useMode() {
           )
 
           historyLines.current.push(line)
-          console.log(line)
           const text = new fabric.Text(length.toString(), {
             left:
               (points.current[0].left +
@@ -140,8 +139,6 @@ export function useMode() {
             selectable: false,
           })
 
-          console.log(endPointCircle)
-
           canvas?.add(line)
           canvas?.add(text)
           canvas?.add(endPointCircle)
@@ -160,7 +157,7 @@ export function useMode() {
   }
 
   const templateMode = () => {
-    changeMode(canvas, UseMode.EDIT)
+    changeMode(canvas, Mode.EDIT)
 
     if (historyPoints.current.length >= 4) {
       const firstPoint = historyPoints.current[0]
@@ -277,6 +274,7 @@ export function useMode() {
 
   /**
    * 두 점을 연결하는 선과 길이를 그립니다.
+   * a : 시작점, b : 끝점
    */
   const drawLineWithLength = (a, b) => {
     const vector = {
@@ -333,5 +331,15 @@ export function useMode() {
     canvas.renderAll()
   }
 
-  return { mode, changeMode, setCanvas }
+  /**
+   * 해당 캔버스를 비운다.
+   */
+  const handleClear = () => {
+    canvas?.clear()
+    points.current = []
+    historyPoints.current = []
+    historyLines.current = []
+  }
+
+  return { mode, changeMode, setCanvas, handleClear }
 }

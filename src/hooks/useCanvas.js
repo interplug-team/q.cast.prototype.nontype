@@ -239,14 +239,6 @@ export function useCanvas(id) {
   }
 
   /**
-   * 해당 캔버스를 비운다.
-   */
-  const handleClear = () => {
-    canvas?.clear()
-    initialize()
-  }
-
-  /**
    * 선택한 도형을 복사한다.
    */
   const handleCopy = () => {
@@ -506,7 +498,6 @@ export function useCanvas(id) {
     addShape,
     handleUndo,
     handleRedo,
-    handleClear,
     handleCopy,
     handleDelete,
     handleSave,
