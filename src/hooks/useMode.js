@@ -9,13 +9,13 @@ export const Mode = {
 }
 
 export function useMode() {
-  const [mode, setMode] = useState(Mode.EDIT)
+  const [mode, setMode] = useState()
   const points = useRef([])
   const historyPoints = useRef([])
   const historyLines = useRef([])
   const [canvas, setCanvas] = useState(null)
 
-  const addEvent = (mode = Mode.EDIT) => {
+  const addEvent = (mode) => {
     switch (mode) {
       case 'drawLine':
         drawLineMode()
@@ -35,7 +35,7 @@ export function useMode() {
     }
   }
 
-  const changeMode = (canvas, mode = Mode.EDIT) => {
+  const changeMode = (canvas, mode) => {
     setMode(mode)
     // mode변경 시 이전 이벤트 제거
     setCanvas(canvas)
