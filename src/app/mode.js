@@ -146,6 +146,7 @@ export function useMode() {
 
   const textboxMode = (canvas) => {
     canvas?.on('mouse:down', function (options) {
+      if (canvas?.getActiveObject()?.type === 'textbox') return
       const pointer = canvas?.getPointer(options.e)
 
       const textbox = new fabric.Textbox('텍스트를 입력하세요', {
@@ -158,6 +159,10 @@ export function useMode() {
       canvas?.add(textbox)
       canvas?.setActiveObject(textbox) // 생성된 텍스트박스를 활성 객체로 설정합니다.
       canvas?.renderAll()
+      // textbox가 active가 풀린 경우 editing mode로 변경
+      textbox?.on('editing:exited', function () {
+        changeMode(canvas, MODE.EDIT)
+      })
     })
   }
 
