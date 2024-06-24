@@ -10,6 +10,7 @@ export default function Headers() {
         <div className="space-x-4 text-xl">
           <Link href="/intro">Intro</Link>
           <Link href="/roof">Roof</Link>
+          <Link href="/roof2">Roof2</Link>
         </div>
       </nav>
     </div>

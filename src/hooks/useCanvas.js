@@ -26,6 +26,7 @@ export function useCanvas(id) {
       height: CANVAS.HEIGHT,
       width: CANVAS.WIDTH,
       backgroundColor: 'white',
+      selection: false,
     })
 
     // settings for all canvas in the app
@@ -47,6 +48,8 @@ export function useCanvas(id) {
   useEffect(() => {
     if (canvas) {
       initialize()
+      canvas?.on('mouse:move', drawMouseLines)
+      canvas?.on('mouse:out', removeMouseLines)
     }
   }, [canvas])
   const addEventOnCanvas = () => {
@@ -91,7 +94,7 @@ export function useCanvas(id) {
     canvas?.clear()
 
     // 기존 이벤트가 있을 경우 제거한다.
-    removeEventOnCanvas()
+    // removeEventOnCanvas()
 
     // 작업 후에 event를 추가해준다.
 
