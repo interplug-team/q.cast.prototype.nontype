@@ -1,6 +1,6 @@
 import { useCanvas } from '@/hooks/useCanvas'
 import { useEffect } from 'react'
-import { Mode, UseMode, useMode } from '@/hooks/useMode'
+import { Mode, useMode } from '@/hooks/useMode'
 
 export default function Roof2() {
   const { canvas, handleRedo, handleUndo } = useCanvas('canvas')
