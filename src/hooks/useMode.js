@@ -189,7 +189,7 @@ export function useMode() {
       canvas?.renderAll()
       // textbox가 active가 풀린 경우 editing mode로 변경
       textbox?.on('editing:exited', function () {
-        changeMode(canvas, UseMode.EDIT)
+        changeMode(canvas, Mode.EDIT)
       })
     })
   }
