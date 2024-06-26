@@ -1,5 +1,6 @@
 import { fabric } from 'fabric'
 import QRect from '@/components/fabric/QRect'
+import { distanceBetweenPoints } from '@/app/util/canvas-util'
 export default class QPolygon extends fabric.Polygon {
   group
   polygon
@@ -57,20 +58,60 @@ export default class QPolygon extends fabric.Polygon {
     this.#makeGroupItem(groupItems)
   }
 
-  fillCell(cell = { width: 50, height: 100 }) {
-    // QPolygon의 점들을 가져옵니다.
-    const points = this.getPoints()
+  #distanceFromEdge(point) {
+    const vertices = this.getPoints()
+    let minDistance = Infinity
 
-    // 점들을 사용하여 QPolygon의 경계를 정의합니다.
-    const bounds = fabric.util.makeBoundingBoxFromPoints(points)
-    // 경계 내에서 cell의 크기에 맞게 반복합니다.
-    for (let x = bounds.left; x < bounds.left + bounds.width; x += cell.width) {
+    for (let i = 0; i < vertices.length; i++) {
+      let vertex1 = vertices[i]
+      let vertex2 = vertices[(i + 1) % vertices.length]
+
+      const dx = vertex2.x - vertex1.x
+      const dy = vertex2.y - vertex1.y
+
+      const t =
+        ((point.x - vertex1.x) * dx + (point.y - vertex1.y) * dy) /
+        (dx * dx + dy * dy)
+
+      let closestPoint
+      if (t < 0) {
+        closestPoint = vertex1
+      } else if (t > 1) {
+        closestPoint = vertex2
+      } else {
+        closestPoint = new fabric.Point(vertex1.x + t * dx, vertex1.y + t * dy)
+      }
+
+      const distance = distanceBetweenPoints(point, closestPoint)
+      if (distance < minDistance) {
+        minDistance = distance
+      }
+    }
+
+    return minDistance
+  }
+
+  fillCell(cell = { width: 50, height: 100, padding: 10 }) {
+    const points = this.getPoints()
+    let bounds
+
+    try {
+      bounds = fabric.util.makeBoundingBoxFromPoints(points)
+    } catch (error) {
+      alert('다각형의 꼭지점이 4개 이상이어야 합니다.')
+      return
+    }
+
+    for (
+      let x = bounds.left;
+      x < bounds.left + bounds.width;
+      x += cell.width + cell.padding
+    ) {
       for (
         let y = bounds.top;
         y < bounds.top + bounds.height;
-        y += cell.height
+        y += cell.height + cell.padding
       ) {
-        // 각 위치에 cell을 생성합니다.
         const rect = new fabric.Rect({
           left: x,
           top: y,
@@ -81,7 +122,6 @@ export default class QPolygon extends fabric.Polygon {
           selectable: false,
         })
 
-        // 사각형의 각 꼭지점을 생성합니다.
         const rectPoints = [
           new fabric.Point(rect.left, rect.top),
           new fabric.Point(rect.left + rect.width, rect.top),
@@ -89,21 +129,18 @@ export default class QPolygon extends fabric.Polygon {
           new fabric.Point(rect.left + rect.width, rect.top + rect.height),
         ]
 
-        console.log(rectPoints)
-
-        // 모든 꼭지점이 사다리꼴 내부에 있는지 확인합니다.
-        const isInside = rectPoints.every((rectPoint) =>
-          this.inPolygon(rectPoint),
+        const isInside = rectPoints.every(
+          (rectPoint) =>
+            this.inPolygon(rectPoint) &&
+            this.#distanceFromEdge(rectPoint) >= cell.padding,
         )
 
-        // 모든 꼭지점이 사다리꼴 내부에 있을 경우에만 사각형을 그립니다.
         if (isInside) {
           this.group.canvas.add(rect)
         }
       }
     }
 
-    // 캔버스를 다시 그립니다.
     this.group.canvas.renderAll()
   }
 
