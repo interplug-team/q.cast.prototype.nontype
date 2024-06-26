@@ -18,7 +18,7 @@ export default class QPolygon extends fabric.Polygon {
 
   #makeGroupItem(groupItems) {
     const group = new fabric.Group(groupItems, {
-      selectable: false,
+      selectable: this.selectable,
       type: 'QRect',
       canvas: this.canvas,
     })
@@ -58,9 +58,11 @@ export default class QPolygon extends fabric.Polygon {
   }
 
   fillCell(cell = { width: 50, height: 100 }) {
-    // QPolygon의 경계를 구합니다.
-    const bounds = this.group.getBoundingRect()
+    // QPolygon의 점들을 가져옵니다.
+    const points = this.getPoints()
 
+    // 점들을 사용하여 QPolygon의 경계를 정의합니다.
+    const bounds = fabric.util.makeBoundingBoxFromPoints(points)
     // 경계 내에서 cell의 크기에 맞게 반복합니다.
     for (let x = bounds.left; x < bounds.left + bounds.width; x += cell.width) {
       for (
@@ -69,10 +71,9 @@ export default class QPolygon extends fabric.Polygon {
         y += cell.height
       ) {
         // 각 위치에 cell을 생성합니다.
-        const rect = new QRect({
+        const rect = new fabric.Rect({
           left: x,
           top: y,
-          viewLengthText: true,
           width: cell.width,
           height: cell.height,
           fill: 'transparent',
@@ -88,9 +89,11 @@ export default class QPolygon extends fabric.Polygon {
           new fabric.Point(rect.left + rect.width, rect.top + rect.height),
         ]
 
+        console.log(rectPoints)
+
         // 모든 꼭지점이 사다리꼴 내부에 있는지 확인합니다.
         const isInside = rectPoints.every((rectPoint) =>
-          this.group.containsPoint(rectPoint),
+          this.inPolygon(rectPoint),
         )
 
         // 모든 꼭지점이 사다리꼴 내부에 있을 경우에만 사각형을 그립니다.
@@ -102,5 +105,47 @@ export default class QPolygon extends fabric.Polygon {
 
     // 캔버스를 다시 그립니다.
     this.group.canvas.renderAll()
+  }
+
+  getPoints() {
+    return this.points
+  }
+
+  getInfo() {
+    return this
+  }
+
+  inPolygon(point) {
+    const vertices = this.getPoints()
+    let intersects = 0
+
+    for (let i = 0; i < vertices.length; i++) {
+      let vertex1 = vertices[i]
+      let vertex2 = vertices[(i + 1) % vertices.length]
+
+      if (vertex1.y > vertex2.y) {
+        let tmp = vertex1
+        vertex1 = vertex2
+        vertex2 = tmp
+      }
+
+      if (point.y === vertex1.y || point.y === vertex2.y) {
+        point.y += 0.01
+      }
+
+      if (point.y <= vertex1.y || point.y > vertex2.y) {
+        continue
+      }
+
+      let xInt =
+        ((point.y - vertex1.y) * (vertex2.x - vertex1.x)) /
+          (vertex2.y - vertex1.y) +
+        vertex1.x
+      if (xInt < point.x) {
+        intersects++
+      }
+    }
+
+    return intersects % 2 === 1
   }
 }

@@ -9,6 +9,7 @@ export const Mode = {
   TEMPLATE: 'template',
   TEXTBOX: 'textbox',
   DRAW_RECT: 'drawRect',
+  DEFAULT: 'default',
 }
 
 export function useMode() {
@@ -21,6 +22,9 @@ export function useMode() {
 
   const addEvent = (mode) => {
     switch (mode) {
+      case 'default':
+        canvas?.off('mouse:down')
+        break
       case 'drawLine':
         drawLineMode()
         break
@@ -349,11 +353,13 @@ export function useMode() {
       stroke: 'black',
       fill: 'transparent',
       viewLengthText: true,
-      selectable: false,
+      selectable: true,
     })
 
     // 새로운 다각형 객체를 캔버스에 추가합니다.
     canvas.add(polygon)
+
+    console.log(polygon.getPoints())
 
     polygon.fillCell()
   }

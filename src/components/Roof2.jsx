@@ -72,15 +72,17 @@ export default function Roof2() {
           fill: 'transparent',
           stroke: 'black',
           strokeWidth: 2,
+
           viewLengthText: true, // 이 속성이 true로 설정되면, 다각형의 각 변의 길이를 표시하는 텍스트가 생성됩니다.
-          selectable: false,
+          selectable: true,
         },
       )
 
       canvas?.add(polygon)
-      console.log(polygon.polygon)
 
-      setTimeout(() => polygon.delete(), 500)
+      setTimeout(() => {
+        polygon.fillCell({ width: 10, height: 20 })
+      }, 500)
     }
   }
 
@@ -88,6 +90,12 @@ export default function Roof2() {
     <>
       {canvas && (
         <div className="flex justify-center my-8">
+          <button
+            className={`w-30 mx-2 p-2 rounded ${mode === Mode.DEFAULT ? 'bg-blue-500' : 'bg-gray-500'} text-white`}
+            onClick={() => changeMode(canvas, Mode.DEFAULT)}
+          >
+            모드 DEFAULT
+          </button>
           <button
             className={`w-30 mx-2 p-2 rounded ${mode === Mode.DRAW_LINE ? 'bg-blue-500' : 'bg-gray-500'} text-white`}
             onClick={() => changeMode(canvas, Mode.DRAW_LINE)}

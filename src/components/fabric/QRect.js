@@ -19,7 +19,7 @@ export default class QRect extends fabric.Rect {
 
   #makeGroupItem(groupItems) {
     const group = new fabric.Group(groupItems, {
-      selectable: false,
+      selectable: this.selectable,
       type: 'QRect',
       canvas: this.canvas,
     })
@@ -60,5 +60,9 @@ export default class QRect extends fabric.Rect {
     })
 
     this.#makeGroupItem(groupItems)
+  }
+
+  getInfo() {
+    return this
   }
 }

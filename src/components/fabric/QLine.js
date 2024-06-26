@@ -23,6 +23,7 @@ export default class QLine extends fabric.Line {
     const group = new fabric.Group(groupItems, {
       selectable: false,
       type: 'QRect',
+      group: this.selectable,
       canvas: this.canvas,
     })
 
@@ -47,5 +48,9 @@ export default class QLine extends fabric.Line {
     })
 
     this.#makeGroupItem([this, text])
+  }
+
+  getInfo() {
+    return this
   }
 }
