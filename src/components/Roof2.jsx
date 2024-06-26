@@ -1,11 +1,22 @@
 import { useCanvas } from '@/hooks/useCanvas'
 import { useEffect } from 'react'
 import { Mode, useMode } from '@/hooks/useMode'
+import QRect from '@/components/fabric/QRect'
+import QLine from '@/components/fabric/QLine'
+import QPolygon from '@/components/fabric/QPolygon'
 
 export default function Roof2() {
   const { canvas, handleRedo, handleUndo } = useCanvas('canvas')
 
-  const { mode, changeMode, setCanvas, handleClear } = useMode()
+  const {
+    mode,
+    changeMode,
+    handleClear,
+    fillCellInPolygon,
+    zoomIn,
+    zoomOut,
+    zoom,
+  } = useMode()
 
   useEffect(() => {
     if (!canvas) {
@@ -13,6 +24,62 @@ export default function Roof2() {
     }
     changeMode(canvas, mode)
   }, [canvas, mode])
+
+  const makeRect = () => {
+    if (canvas) {
+      const rect = new QRect({
+        left: 100,
+        top: 100,
+        fill: 'transparent',
+        stroke: 'black',
+        width: 400,
+        height: 100,
+        isLengthText: true, // 이 속성이 true로 설정되면, 사각형의 각 선분의 길이를 표시하는 텍스트가 생성됩니다.
+        selectable: false,
+      })
+
+      canvas?.add(rect)
+    }
+  }
+
+  const makeLine = () => {
+    if (canvas) {
+      const line = new QLine([50, 50, 200, 200], {
+        stroke: 'black',
+        strokeWidth: 2,
+        isLengthText: true, // 이 속성이 true로 설정되면, 선분의 길이를 표시하는 텍스트가 생성됩니다.
+        selectable: false,
+      })
+
+      canvas?.add(line)
+    }
+  }
+
+  const makePolygon = () => {
+    if (canvas) {
+      const polygon = new QPolygon(
+        [
+          { x: 100, y: 100 },
+          { x: 200, y: 200 },
+          { x: 200, y: 300 },
+          { x: 100, y: 300 },
+        ],
+        {
+          fill: 'transparent',
+          stroke: 'black',
+          strokeWidth: 2,
+          isLengthText: true, // 이 속성이 true로 설정되면, 다각형의 각 변의 길이를 표시하는 텍스트가 생성됩니다.
+          selectable: false,
+        },
+      )
+
+      canvas?.add(polygon)
+
+      setTimeout(() => {
+        console.log(canvas?.getObjects())
+      }, 1000)
+    }
+  }
 
   return (
     <>
@@ -65,6 +132,43 @@ export default function Roof2() {
             onClick={handleClear}
           >
             clear
+          </button>
+          <button
+            className="w-30 mx-2 p-2 rounded bg-gray-500 text-white"
+            onClick={() => fillCellInPolygon()}
+          >
+            fillCellInPolygon
+          </button>
+          <button
+            className="w-30 mx-2 p-2 rounded bg-gray-500 text-white"
+            onClick={zoomIn}
+          >
+            확대
+          </button>
+          <button
+            className="w-30 mx-2 p-2 rounded bg-gray-500 text-white"
+            onClick={zoomOut}
+          >
+            축소
+          </button>
+          현재 줌 : {zoom}%
+          <button
+            className="w-30 mx-2 p-2 rounded bg-gray-500 text-white"
+            onClick={makeRect}
+          >
+            사각형만들기
+          </button>
+          <button
+            className="w-30 mx-2 p-2 rounded bg-gray-500 text-white"
+            onClick={makeLine}
+          >
+            선 추가
+          </button>
+          <button
+            className="w-30 mx-2 p-2 rounded bg-gray-500 text-white"
+            onClick={makePolygon}
+          >
+            다각형 추가
           </button>
         </div>
       )}

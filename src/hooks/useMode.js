@@ -1,4 +1,7 @@
 import { useRef, useState } from 'react'
+import QLine from '@/components/fabric/QLine'
+import QRect from '@/components/fabric/QRect'
+import QPolygon from '@/components/fabric/QPolygon'
 
 export const Mode = {
   DRAW_LINE: 'drawLine', // 기준선 긋기모드
@@ -14,6 +17,7 @@ export function useMode() {
   const historyPoints = useRef([])
   const historyLines = useRef([])
   const [canvas, setCanvas] = useState(null)
+  const [zoom, setZoom] = useState(100)
 
   const addEvent = (mode) => {
     switch (mode) {
@@ -44,6 +48,38 @@ export function useMode() {
   }
 
   const editMode = () => {
+    let distanceText = null // 거리를 표시하는 텍스트 객체를 저장할 변수
+    canvas?.on('mouse:move', function (options) {
+      const pointer = canvas?.getPointer(options.e)
+
+      if (historyLines.current.length === 0) return
+      const direction = getDirection(historyLines.current[0], pointer)
+
+      // 각 선과 마우스 위치 사이의 거리를 계산합니다.
+      const dx = historyLines.current[0].x1 - pointer.x
+      const dy = 0
+
+      const minDistance = Math.sqrt(dx * dx + dy * dy)
+
+      // 거리를 표시하는 텍스트 객체를 생성하거나 업데이트합니다.
+      if (distanceText) {
+        distanceText.set({
+          left: pointer.x,
+          top: pointer.y,
+          text: `${minDistance.toFixed(2)}`,
+        })
+      } else {
+        distanceText = new fabric.Text(`${minDistance.toFixed(2)}`, {
+          left: pointer.x,
+          top: pointer.y,
+          fontSize: 16,
+        })
+        canvas?.add(distanceText)
+      }
+
+      // 캔버스를 다시 그립니다.
+      canvas?.renderAll()
+    })
     canvas?.on('mouse:down', function (options) {
       const pointer = canvas?.getPointer(options.e)
       const circle = new fabric.Circle({
@@ -96,7 +132,7 @@ export function useMode() {
             }
           }
 
-          const line = new fabric.Line(
+          const line = new QLine(
             [
               points.current[0].left,
               points.current[0].top,
@@ -107,26 +143,12 @@ export function useMode() {
               stroke: 'black',
               strokeWidth: 2,
               selectable: false,
+              isLengthText: true,
               direction: getDirection(points.current[0], points.current[1]),
             },
           )
 
           historyLines.current.push(line)
-          const text = new fabric.Text(length.toString(), {
-            left:
-              (points.current[0].left +
-                points.current[0].left +
-                scaledVector.x) /
-              2,
-            top:
-              (points.current[0].top + points.current[0].top + scaledVector.y) /
-              2,
-            fontSize: 15,
-            originX: 'center',
-            originY: 'center',
-            selectable: false,
-          })
-
           // 라인의 끝에 점을 추가합니다.
           const endPointCircle = new fabric.Circle({
             radius: 1,
@@ -140,7 +162,6 @@ export function useMode() {
           })
 
           canvas?.add(line)
-          canvas?.add(text)
           canvas?.add(endPointCircle)
 
           historyPoints.current.push(endPointCircle)
@@ -198,11 +219,12 @@ export function useMode() {
     canvas?.on('mouse:down', function (options) {
       const pointer = canvas?.getPointer(options.e)
 
-      const line = new fabric.Line(
+      const line = new QLine(
         [pointer.x, 0, pointer.x, canvas.height], // y축에 1자 선을 그립니다.
         {
           stroke: 'black',
           strokeWidth: 2,
+          isLengthText: true,
           selectable: false,
         },
       )
@@ -219,7 +241,7 @@ export function useMode() {
       const pointer = canvas.getPointer(o.e)
       origX = pointer.x
       origY = pointer.y
-      rect = new fabric.Rect({
+      rect = new QRect({
         left: origX,
         top: origY,
         originX: 'left',
@@ -228,6 +250,7 @@ export function useMode() {
         height: pointer.y - origY,
         angle: 0,
         fill: 'transparent',
+        isLengthText: true,
         stroke: 'black',
         transparentCorners: false,
       })
@@ -281,7 +304,7 @@ export function useMode() {
       x: b.left - a.left,
       y: b.top - a.top,
     }
-    const line = new fabric.Line([a.left, a.top, b.left, b.top], {
+    const line = new QLine([a.left, a.top, b.left, b.top], {
       stroke: 'black',
       strokeWidth: 2,
       selectable: false,
@@ -289,20 +312,7 @@ export function useMode() {
     })
     historyLines.current.push(line)
 
-    const text = new fabric.Text(
-      Math.round(Math.sqrt(vector.x ** 2 + vector.y ** 2)).toString(),
-      {
-        left: (a.left + b.left) / 2,
-        top: (a.top + b.top) / 2,
-        fontSize: 15,
-        originX: 'center',
-        originY: 'center',
-        selectable: false,
-      },
-    )
-
     canvas?.add(line)
-    canvas?.add(text)
     canvas?.renderAll()
   }
 
@@ -318,9 +328,10 @@ export function useMode() {
     lines.forEach((line) => canvas.remove(line))
 
     // 점 배열을 사용하여 새로운 다각형 객체를 생성합니다.
-    const polygon = new fabric.Polygon(points, {
+    const polygon = new QPolygon(points, {
       stroke: 'black',
       fill: 'transparent',
+      isLengthText: true,
       selectable: false,
     })
 
@@ -341,5 +352,93 @@ export function useMode() {
     historyLines.current = []
   }
 
-  return { mode, changeMode, setCanvas, handleClear }
+  const fillCellInPolygon = (
+    polygon = null,
+    cell = { width: 50, height: 100 },
+    padding = 20,
+  ) => {
+    if (!polygon) {
+      polygon = canvas?.getObjects().find((obj) => obj.type === 'polygon')
+      if (!polygon) {
+        alert('다각형을 먼저 그려주세요')
+        return
+      }
+    }
+    const polygonWidth = polygon.width - 2 * padding
+    const polygonHeight = polygon.height - 2 * padding
+
+    const numRectanglesWidth = Math.floor(polygonWidth / (cell.width + padding))
+    const numRectanglesHeight = Math.floor(
+      polygonHeight / (cell.height + padding),
+    )
+
+    const points = polygon.get('points') // 다각형의 각 꼭지점을 가져옵니다.
+    const lines = []
+
+    for (let i = 0; i < points.length; i++) {
+      const start = points[i]
+      const end = points[(i + 1) % points.length] // 다각형이 닫히도록 마지막 점과 첫번째 점을 연결합니다.
+
+      const line = new fabric.Line([start.x, start.y, end.x, end.y], {
+        stroke: 'black',
+        selectable: false,
+      })
+
+      lines.push(line)
+    }
+
+    for (let i = 0; i < numRectanglesWidth; i++) {
+      for (let j = 0; j < numRectanglesHeight; j++) {
+        const rect = new fabric.Rect({
+          left: i * (cell.width + padding) + polygon.left + padding,
+          top: j * (cell.height + padding) + polygon.top + padding,
+          width: cell.width,
+          height: cell.height,
+          fill: 'transparent',
+          stroke: 'red',
+        })
+
+        // 사각형의 각 꼭지점을 생성합니다.
+        const rectPoints = [
+          new fabric.Point(rect.left, rect.top),
+          new fabric.Point(rect.left + rect.width, rect.top),
+          new fabric.Point(rect.left, rect.top + rect.height),
+          new fabric.Point(rect.left + rect.width, rect.top + rect.height),
+        ]
+
+        // 모든 꼭지점이 다각형 내부에 있는지 확인합니다.
+        const isInside = rectPoints.every((rectPoint) =>
+          polygon.containsPoint(rectPoint),
+        )
+
+        // 모든 꼭지점이 다각형 내부에 있을 경우에만 사각형을 그립니다.
+        if (isInside) {
+          canvas.add(rect)
+        }
+      }
+    }
+    canvas.renderAll()
+  }
+
+  const zoomIn = () => {
+    canvas?.setZoom(canvas.getZoom() + 0.1)
+
+    setZoom(Math.round(zoom + 10))
+  }
+
+  const zoomOut = () => {
+    canvas?.setZoom(canvas.getZoom() - 0.1)
+    setZoom(Math.ceil(zoom - 10))
+  }
+
+  return {
+    mode,
+    changeMode,
+    setCanvas,
+    handleClear,
+    fillCellInPolygon,
+    zoomIn,
+    zoomOut,
+    zoom,
+  }
 }
