@@ -241,7 +241,7 @@ export function useMode() {
       const pointer = canvas.getPointer(o.e)
       origX = pointer.x
       origY = pointer.y
-      rect = new QRect({
+      rect = new fabric.Rect({
         left: origX,
         top: origY,
         originX: 'left',
@@ -250,7 +250,6 @@ export function useMode() {
         height: pointer.y - origY,
         angle: 0,
         fill: 'transparent',
-        isLengthText: true,
         stroke: 'black',
         transparentCorners: false,
       })
@@ -269,10 +268,25 @@ export function useMode() {
 
       rect.set({ width: Math.abs(origX - pointer.x) })
       rect.set({ height: Math.abs(origY - pointer.y) })
-      canvas.renderAll()
     })
 
     canvas.on('mouse:up', function (o) {
+      const pointer = canvas.getPointer(o.e)
+      const qRect = new QRect({
+        left: origX,
+        top: origY,
+        originX: 'left',
+        originY: 'top',
+        width: pointer.x - origX,
+        height: pointer.y - origY,
+        angle: 0,
+        isLengthText: true,
+        fill: 'transparent',
+        stroke: 'black',
+        transparentCorners: false,
+      })
+      canvas.remove(rect)
+      canvas.add(qRect)
       isDown = false
     })
   }
@@ -308,6 +322,7 @@ export function useMode() {
       stroke: 'black',
       strokeWidth: 2,
       selectable: false,
+      isLengthText: true,
       direction: getDirection(a, b),
     })
     historyLines.current.push(line)
@@ -325,7 +340,9 @@ export function useMode() {
     const points = lines.map((line) => ({ x: line.x1, y: line.y1 }))
 
     // 모든 라인 객체를 캔버스에서 제거합니다.
-    lines.forEach((line) => canvas.remove(line))
+    lines.forEach((line) => {
+      line.delete()
+    })
 
     // 점 배열을 사용하여 새로운 다각형 객체를 생성합니다.
     const polygon = new QPolygon(points, {
@@ -337,9 +354,6 @@ export function useMode() {
 
     // 새로운 다각형 객체를 캔버스에 추가합니다.
     canvas.add(polygon)
-
-    // 캔버스를 다시 그립니다.
-    canvas.renderAll()
   }
 
   /**

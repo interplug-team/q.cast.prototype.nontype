@@ -1,15 +1,36 @@
+import { fabric } from 'fabric'
 export default class QRect extends fabric.Rect {
+  group
   constructor(options) {
     super(options)
 
     this.on('added', () => {
       if (this.isLengthText) {
-        this.addLengthText()
+        this.#addLengthText()
+      } else {
+        this.#makeGroupItem([this])
       }
     })
   }
 
-  addLengthText() {
+  delete() {
+    this.group.canvas.remove(this.group)
+  }
+
+  #makeGroupItem(groupItems) {
+    const group = new fabric.Group(groupItems, {
+      selectable: false,
+      type: 'QRect',
+      canvas: this.canvas,
+    })
+
+    this.group = group
+    this.canvas.add(group)
+    this.canvas.renderAll()
+    this.canvas.remove(this)
+  }
+
+  #addLengthText() {
     const lines = [
       {
         start: { x: this.left, y: this.top },
@@ -46,13 +67,6 @@ export default class QRect extends fabric.Rect {
       groupItems.push(text)
     })
 
-    const group = new fabric.Group(groupItems, {
-      selectable: false,
-      type: 'QRect',
-    })
-
-    this.canvas.add(group)
-    this.canvas.renderAll()
-    this.canvas.remove(this)
+    this.#makeGroupItem(groupItems)
   }
 }

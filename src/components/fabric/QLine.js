@@ -1,16 +1,38 @@
+import { fabric } from 'fabric'
 export default class QLine extends fabric.Line {
   length
+  group
+
   constructor(points, option) {
     super(points, option)
 
     this.on('added', () => {
       if (this.isLengthText) {
-        this.addLengthText()
+        this.#addLengthText()
+      } else {
+        this.#makeGroupItem([this])
       }
     })
   }
 
-  addLengthText() {
+  delete() {
+    this.group.canvas.remove(this.group)
+  }
+
+  #makeGroupItem(groupItems) {
+    const group = new fabric.Group(groupItems, {
+      selectable: false,
+      type: 'QRect',
+      canvas: this.canvas,
+    })
+
+    this.group = group
+    this.canvas.add(group)
+    this.canvas.renderAll()
+    this.canvas.remove(this)
+  }
+
+  #addLengthText() {
     const dx = this.x2 - this.x1
     const dy = this.y2 - this.y1
     const length = Math.sqrt(dx * dx + dy * dy)
@@ -24,13 +46,6 @@ export default class QLine extends fabric.Line {
       selectable: false,
     })
 
-    const group = new fabric.Group([this, text], {
-      selectable: false,
-      type: 'QLine',
-    })
-
-    this.canvas.add(group)
-    this.canvas.renderAll()
-    this.canvas.remove(this)
+    this.#makeGroupItem([this, text])
   }
 }

@@ -1,15 +1,37 @@
+import { fabric } from 'fabric'
 export default class QPolygon extends fabric.Polygon {
+  group
+
   constructor(points, option) {
     super(points, option)
 
     this.on('added', () => {
       if (this.isLengthText) {
-        this.addLengthText()
+        this.#addLengthText()
+      } else {
+        this.#makeGroupItem([this])
       }
     })
   }
 
-  addLengthText() {
+  #makeGroupItem(groupItems) {
+    const group = new fabric.Group(groupItems, {
+      selectable: false,
+      type: 'QRect',
+      canvas: this.canvas,
+    })
+
+    this.group = group
+    this.canvas.add(group)
+    this.canvas.renderAll()
+    this.canvas.remove(this)
+  }
+
+  delete() {
+    this.group.canvas.remove(this.group)
+  }
+
+  #addLengthText() {
     const groupItems = [this]
 
     for (let i = 0; i < this.points.length; i++) {
@@ -30,13 +52,6 @@ export default class QPolygon extends fabric.Polygon {
       groupItems.push(text)
     }
 
-    const group = new fabric.Group(groupItems, {
-      selectable: false,
-      type: 'QPolygon',
-    })
-
-    this.canvas.add(group)
-    this.canvas.renderAll()
-    this.canvas.remove(this)
+    this.#makeGroupItem(groupItems)
   }
 }

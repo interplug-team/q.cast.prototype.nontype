@@ -116,7 +116,7 @@ export function useCanvas(id) {
   const onChange = (e) => {
     const target = e.target
     if (target) {
-      settleDown(target)
+      // settleDown(target)
     }
 
     if (!isLocked) {

@@ -39,6 +39,8 @@ export default function Roof2() {
       })
 
       canvas?.add(rect)
+
+      setTimeout(() => rect.delete(), 500)
     }
   }
 
@@ -52,6 +54,8 @@ export default function Roof2() {
       })
 
       canvas?.add(line)
+
+      setTimeout(() => line.delete(), 500)
     }
   }
 
@@ -75,9 +79,7 @@ export default function Roof2() {
 
       canvas?.add(polygon)
 
-      setTimeout(() => {
-        console.log(canvas?.getObjects())
-      }, 1000)
+      setTimeout(() => polygon.delete(), 500)
     }
   }
 
