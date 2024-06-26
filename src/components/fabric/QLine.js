@@ -7,7 +7,7 @@ export default class QLine extends fabric.Line {
     super(points, option)
 
     this.on('added', () => {
-      if (this.isLengthText) {
+      if (this.viewLengthText) {
         this.#addLengthText()
       } else {
         this.#makeGroupItem([this])

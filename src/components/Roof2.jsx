@@ -34,7 +34,7 @@ export default function Roof2() {
         stroke: 'black',
         width: 400,
         height: 100,
-        isLengthText: true, // 이 속성이 true로 설정되면, 사각형의 각 선분의 길이를 표시하는 텍스트가 생성됩니다.
+        viewLengthText: true, // 이 속성이 true로 설정되면, 사각형의 각 선분의 길이를 표시하는 텍스트가 생성됩니다.
         selectable: false,
       })
 
@@ -49,7 +49,7 @@ export default function Roof2() {
       const line = new QLine([50, 50, 200, 200], {
         stroke: 'black',
         strokeWidth: 2,
-        isLengthText: true, // 이 속성이 true로 설정되면, 선분의 길이를 표시하는 텍스트가 생성됩니다.
+        viewLengthText: true, // 이 속성이 true로 설정되면, 선분의 길이를 표시하는 텍스트가 생성됩니다.
         selectable: false,
       })
 
@@ -72,12 +72,13 @@ export default function Roof2() {
           fill: 'transparent',
           stroke: 'black',
           strokeWidth: 2,
-          isLengthText: true, // 이 속성이 true로 설정되면, 다각형의 각 변의 길이를 표시하는 텍스트가 생성됩니다.
+          viewLengthText: true, // 이 속성이 true로 설정되면, 다각형의 각 변의 길이를 표시하는 텍스트가 생성됩니다.
           selectable: false,
         },
       )
 
       canvas?.add(polygon)
+      console.log(polygon.polygon)
 
       setTimeout(() => polygon.delete(), 500)
     }
@@ -134,12 +135,6 @@ export default function Roof2() {
             onClick={handleClear}
           >
             clear
-          </button>
-          <button
-            className="w-30 mx-2 p-2 rounded bg-gray-500 text-white"
-            onClick={() => fillCellInPolygon()}
-          >
-            fillCellInPolygon
           </button>
           <button
             className="w-30 mx-2 p-2 rounded bg-gray-500 text-white"

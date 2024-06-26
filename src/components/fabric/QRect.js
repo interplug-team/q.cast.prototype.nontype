@@ -5,7 +5,7 @@ export default class QRect extends fabric.Rect {
     super(options)
 
     this.on('added', () => {
-      if (this.isLengthText) {
+      if (this.viewLengthText) {
         this.#addLengthText()
       } else {
         this.#makeGroupItem([this])
@@ -35,14 +35,6 @@ export default class QRect extends fabric.Rect {
       {
         start: { x: this.left, y: this.top },
         end: { x: this.left + this.width, y: this.top },
-      },
-      {
-        start: { x: this.left + this.width, y: this.top },
-        end: { x: this.left + this.width, y: this.top + this.height },
-      },
-      {
-        start: { x: this.left + this.width, y: this.top + this.height },
-        end: { x: this.left, y: this.top + this.height },
       },
       {
         start: { x: this.left, y: this.top + this.height },

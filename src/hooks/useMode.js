@@ -143,7 +143,7 @@ export function useMode() {
               stroke: 'black',
               strokeWidth: 2,
               selectable: false,
-              isLengthText: true,
+              viewLengthText: true,
               direction: getDirection(points.current[0], points.current[1]),
             },
           )
@@ -224,7 +224,7 @@ export function useMode() {
         {
           stroke: 'black',
           strokeWidth: 2,
-          isLengthText: true,
+          viewLengthText: true,
           selectable: false,
         },
       )
@@ -280,7 +280,7 @@ export function useMode() {
         width: pointer.x - origX,
         height: pointer.y - origY,
         angle: 0,
-        isLengthText: true,
+        viewLengthText: true,
         fill: 'transparent',
         stroke: 'black',
         transparentCorners: false,
@@ -322,7 +322,7 @@ export function useMode() {
       stroke: 'black',
       strokeWidth: 2,
       selectable: false,
-      isLengthText: true,
+      viewLengthText: true,
       direction: getDirection(a, b),
     })
     historyLines.current.push(line)
@@ -348,12 +348,14 @@ export function useMode() {
     const polygon = new QPolygon(points, {
       stroke: 'black',
       fill: 'transparent',
-      isLengthText: true,
+      viewLengthText: true,
       selectable: false,
     })
 
     // 새로운 다각형 객체를 캔버스에 추가합니다.
     canvas.add(polygon)
+
+    polygon.fillCell()
   }
 
   /**
@@ -366,77 +368,8 @@ export function useMode() {
     historyLines.current = []
   }
 
-  const fillCellInPolygon = (
-    polygon = null,
-    cell = { width: 50, height: 100 },
-    padding = 20,
-  ) => {
-    if (!polygon) {
-      polygon = canvas?.getObjects().find((obj) => obj.type === 'polygon')
-      if (!polygon) {
-        alert('다각형을 먼저 그려주세요')
-        return
-      }
-    }
-    const polygonWidth = polygon.width - 2 * padding
-    const polygonHeight = polygon.height - 2 * padding
-
-    const numRectanglesWidth = Math.floor(polygonWidth / (cell.width + padding))
-    const numRectanglesHeight = Math.floor(
-      polygonHeight / (cell.height + padding),
-    )
-
-    const points = polygon.get('points') // 다각형의 각 꼭지점을 가져옵니다.
-    const lines = []
-
-    for (let i = 0; i < points.length; i++) {
-      const start = points[i]
-      const end = points[(i + 1) % points.length] // 다각형이 닫히도록 마지막 점과 첫번째 점을 연결합니다.
-
-      const line = new fabric.Line([start.x, start.y, end.x, end.y], {
-        stroke: 'black',
-        selectable: false,
-      })
-
-      lines.push(line)
-    }
-
-    for (let i = 0; i < numRectanglesWidth; i++) {
-      for (let j = 0; j < numRectanglesHeight; j++) {
-        const rect = new fabric.Rect({
-          left: i * (cell.width + padding) + polygon.left + padding,
-          top: j * (cell.height + padding) + polygon.top + padding,
-          width: cell.width,
-          height: cell.height,
-          fill: 'transparent',
-          stroke: 'red',
-        })
-
-        // 사각형의 각 꼭지점을 생성합니다.
-        const rectPoints = [
-          new fabric.Point(rect.left, rect.top),
-          new fabric.Point(rect.left + rect.width, rect.top),
-          new fabric.Point(rect.left, rect.top + rect.height),
-          new fabric.Point(rect.left + rect.width, rect.top + rect.height),
-        ]
-
-        // 모든 꼭지점이 다각형 내부에 있는지 확인합니다.
-        const isInside = rectPoints.every((rectPoint) =>
-          polygon.containsPoint(rectPoint),
-        )
-
-        // 모든 꼭지점이 다각형 내부에 있을 경우에만 사각형을 그립니다.
-        if (isInside) {
-          canvas.add(rect)
-        }
-      }
-    }
-    canvas.renderAll()
-  }
-
   const zoomIn = () => {
     canvas?.setZoom(canvas.getZoom() + 0.1)
-
     setZoom(Math.round(zoom + 10))
   }
 
@@ -450,7 +383,6 @@ export function useMode() {
     changeMode,
     setCanvas,
     handleClear,
-    fillCellInPolygon,
     zoomIn,
     zoomOut,
     zoom,
