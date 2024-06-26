@@ -105,12 +105,15 @@ export function useMode() {
         const length = Number(prompt('길이를 입력하세요:'))
         // length 값이 숫자가 아닌 경우
         if (isNaN(length) || length === 0) {
-          // 기존에 추가된 circle과 pointer를 제거합니다.
-          points.current.forEach((point) => {
-            canvas?.remove(point)
-          })
+          //마지막 추가 된 points 제거합니다.
+
+          const lastPoint =
+            historyPoints.current[historyPoints.current.length - 1]
+
+          canvas?.remove(lastPoint)
+
           historyPoints.current.pop()
-          points.current = []
+          points.current.pop()
           return
         }
 
