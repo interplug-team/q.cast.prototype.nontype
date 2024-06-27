@@ -196,6 +196,9 @@ export function useMode() {
       drawLineWithLength(lastPoint, firstPoint)
       points.current = []
       historyPoints.current = []
+
+      handleOuterlines()
+
       makePolygon()
     }
   }
@@ -338,10 +341,12 @@ export function useMode() {
     canvas?.renderAll()
   }
 
-  const makePolygon = () => {
+  const makePolygon = (otherLines) => {
     // 캔버스에서 모든 라인 객체를 찾습니다.
-    const lines = historyLines.current
-    historyLines.current = []
+    const lines = otherLines || historyLines.current
+    if(!otherLines) {
+      historyLines.current = []
+    }
 
     // 각 라인의 시작점과 끝점을 사용하여 다각형의 점 배열을 생성합니다.
     const points = lines.map((line) => ({ x: line.x1, y: line.y1 }))
@@ -362,9 +367,16 @@ export function useMode() {
     // 새로운 다각형 객체를 캔버스에 추가합니다.
     canvas.add(polygon)
 
+<<<<<<< Updated upstream
     console.log(polygon.getPoints())
 
     polygon.fillCell()
+=======
+    // 캔버스를 다시 그립니다.
+    if(!otherLines) {
+      canvas.renderAll()
+    }
+>>>>>>> Stashed changes
   }
 
   /**
@@ -377,6 +389,7 @@ export function useMode() {
     historyLines.current = []
   }
 
+<<<<<<< Updated upstream
   const zoomIn = () => {
     canvas?.setZoom(canvas.getZoom() + 0.1)
     setZoom(Math.round(zoom + 10))
@@ -396,4 +409,88 @@ export function useMode() {
     zoomOut,
     zoom,
   }
+=======
+  const handleOuterlines = () => {
+    const newOuterlines = []
+    for(let i = 0; i < historyLines.current.length; i++) {
+      const tmp = historyLines.current[i + 1]
+      if(tmp !== undefined) {
+        if (tmp.direction === 'right') {
+          // 다름 라인이 오른쪽으로 이동
+          if (historyLines.current[i].direction === 'top') {
+            newOuterlines.push({
+              x1: historyLines.current[i].x1 - 50,
+              y1: historyLines.current[i].y1 + 50,
+              x2: historyLines.current[i].x2 - 50,
+              y2: historyLines.current[i].y2 - 50
+            })
+          } else { // bottom
+            newOuterlines.push({
+              x1: historyLines.current[i].x1 - 50,
+              y1: historyLines.current[i].y1 - 50,
+              x2: historyLines.current[i].x2 - 50,
+              y2: historyLines.current[i].y2 + 50
+            })
+          }
+        } else if (tmp.direction === 'left') {
+          if (historyLines.current[i].direction === 'top') {
+            newOuterlines.push({
+              x1: historyLines.current[i].x1 + 50,
+              y1: historyLines.current[i].y1 + 50,
+              x2: historyLines.current[i].x2 + 50,
+              y2: historyLines.current[i].y2 - 50
+            })
+          } else { // bottom
+            newOuterlines.push({
+              x1: historyLines.current[i].x1 + 50,
+              y1: historyLines.current[i].y1 - 50,
+              x2: historyLines.current[i].x2 + 50,
+              y2: historyLines.current[i].y2 + 50
+            })
+          }
+        } else if (tmp.direction === 'top') {
+          if (historyLines.current[i].direction === 'right') {
+            newOuterlines.push({
+              x1: historyLines.current[i].x1 - 50,
+              y1: historyLines.current[i].y1 + 50,
+              x2: historyLines.current[i].x2 + 50,
+              y2: historyLines.current[i].y2 + 50
+            })
+          } else { // left
+            newOuterlines.push({
+              x1: historyLines.current[i].x1 + 50,
+              y1: historyLines.current[i].y1 + 50,
+              x2: historyLines.current[i].x2 - 50,
+              y2: historyLines.current[i].y2 + 50
+            })
+          }
+        } else if (tmp.direction === 'bottom') {
+          if (historyLines.current[i].direction === 'right') {
+            newOuterlines.push({
+              x1: historyLines.current[i].x1 - 50,
+              y1: historyLines.current[i].y1 - 50,
+              x2: historyLines.current[i].x2 + 50,
+              y2: historyLines.current[i].y2 - 50
+            })
+          } else { // left
+            newOuterlines.push({
+              x1: historyLines.current[i].x1 + 50,
+              y1: historyLines.current[i].y1 - 50,
+              x2: historyLines.current[i].x2 - 50,
+              y2: historyLines.current[i].y2 - 50
+            })
+          }
+        }
+      } else {
+        const tmp = newOuterlines[newOuterlines.length - 1]
+        newOuterlines.push({x1: tmp.x2, y1: tmp.y2, x2: newOuterlines[0].x1, y2: newOuterlines[0].y1})
+      }
+    }
+
+    console.log(newOuterlines)
+    makePolygon(newOuterlines)
+  }
+
+  return { mode, changeMode, setCanvas, handleClear }
+>>>>>>> Stashed changes
 }
